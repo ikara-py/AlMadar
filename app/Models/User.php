@@ -19,9 +19,12 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
+        'date_of_birth',
+        'role'
     ];
 
     /**
@@ -46,4 +49,31 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    
+    public function getJWTIdentifier(){
+        $this->getKey();
+    }
+
+    public function getJWTCustomClaims(){
+        return [];
+    }
+
+    public function isAdmin(){
+        return $this->role === 'admin';
+    }
+
+    public function isMinor(){
+        return $this->date_of_birth->age < 18;
+    }
+
+    public function guardianAccount(){
+        return $this->hasMany(Account::class, 'guardian_id');
+    }
+
+    public function accounts(){
+        return $this->belongsToMany(Account::class, 'account_user')
+                    ->withPivot('role', 'accepted_closure')
+                    ->withTimestamps();
+    }
+
 }
