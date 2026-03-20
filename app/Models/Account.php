@@ -69,7 +69,18 @@ class Account extends Model
         return $this->belongsTo(User::class, 'guardian_id');
     }
 
-    
+    public function transactions(){
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function outgouingTransfers(){
+        return $this->hasMany(Transfer::class, 'from_account_id');
+    }
+
+    public function incomingTransfers(){
+        return $this->hasMany(Transfer::class, 'to_account_id');
+    }
+
 }
 
 
