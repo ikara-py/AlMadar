@@ -18,4 +18,19 @@ class AccountRepository{
     public function getForUser(User $user){
         return $user->accounts()->with('users', 'guardian')->get();
     }
+
+    public function getAll(){
+        return Account::with('users', 'guardian')->get();
+    }
+
+    public function create(array $data){
+        return Account::create($data);
+    }
+
+    public function update(Account $account, array $data){
+        $account->update($data);
+        return $account->fresh();
+    }
+
+
 }
