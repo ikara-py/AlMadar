@@ -32,5 +32,17 @@ class AccountRepository{
         return $account->fresh();
     }
 
+    public function attachUser(Account $account, $userId, $role){
+        $account->users()->attach($userId, ['role' => $role]);
+    }
+
+    public function detachUser(Account $account, $userId){
+        $account->users()->detach($userId);
+    }
+
+    public function updatePivot(Account $account, $userId, $data){
+        $account->users()->updateExistingPivot($userId, $data);
+    }
+
 
 }
