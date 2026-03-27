@@ -54,8 +54,64 @@ class AccountServices{
         };
 
         $account = $this->accountRepository->create($accountData);
-        $this->accountRepository->attachUser($account, $creator->id, 'PROPRIETAIRE');
-
-        return $account;
+        $this->accountRepository->attachUser($account, $creator->id, 'owner');
+        return $account->load('users', 'quardian');
     }
+
+    public function requestClosure(Account $account, User $requester){
+        if(!$account->isActive()){
+            throw ValidationException::withMessages(['account' => ['only active accounts can be closed']]);
+        }
+
+        if((float) $account->balance !== 0.0){
+            throw ValidationException::withMessages(['balance' => ['Balance must be 0 before closing it']]);
+        }
+
+        $this->accountRepository->updatePivot($account, $requester->id, ['accepted closure' => true]);
+
+        $account->refresh();
+
+        $allAccepted = $account->user->every(fn ($u) => $u->pivot->accepted_closure);
+        return [
+            'message' => $allAccepted ? 'Account is ready for admin closure.' : 'request has been recorded.',
+            'all_accepted' => $allAccepted,
+        ];
+    }
+
+    public function convertMinorToCurrentAccount(Account $account, User $initiator){
+        if(!$account->isMineur()){
+            throw ValidationException::withMessages(['account' => ['only Mineur can be covered']]);
+        }
+
+        if($account->guardian_id !== $initiator->id){
+            throw ValidationException::withMessages(['account' => ['Only the guardian can convert a MINEUR account.']]);
+        }
+
+        $minorHolder = $account->users->first(fn ($u) => $u->id !== $account->guardian_id);
+
+        if($minorHolder && $minorHolder->isMinor()){
+            throw ValidationException::withMessages(['account' => ['The account holder is still a minor.']]);
+        }
+
+        return $this->accountRepository->update($account, [
+            'type' => 'COURANT',
+            'guardian_id' => null,
+            'overdraft_limit' => config('banking.overdraft_limit'),
+            'monthly_fee' => config('banking.monthly_fee'),
+            'interest_rate' => null,
+        ]);
+    }
+
+    public function addCoOwner(Account $account, $userId){
+        $user = $this->userRepository->findOrFail($userId);
+        if($account->users->contains($user->id)){
+            throw ValidationException::withMessages(['user_id' => ['This user is already a holder of this account.']]);
+        }
+
+        $this->accountRepository->attachUser($account, $user->id, 'co_owner');        
+        }
+            
+    public function removeCoOwner(Account $account, $userId){
+            $this->accountRepository->detachUser($account, $userId);
+        }
 }
