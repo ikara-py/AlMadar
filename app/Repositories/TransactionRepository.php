@@ -25,6 +25,10 @@ class TransactionRepository
             $q->whereDate('created_at', '<=', $filters['date_to']);
         }
 
+        if (!empty($filters['type'])) {
+            $q->where('type', $filters['type']);
+        }
+
         return $q->orderBy('created_at', 'desc')->paginate(20);
     }
 }
