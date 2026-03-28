@@ -45,17 +45,17 @@ class AccountServices{
                 'monthly_fee' => $data['monthly_fee'] ?? config('banking.monthly_fee'),
             ],
             'EPARGNE' => $accountData +=[
-                'intrest_rate' => $data['interest_rate'] ?? config('banking.savings_interest_rate'),
+                'interest_rate' => $data['interest_rate'] ?? config('banking.savings_interest_rate'),
             ],
             'MINEUR' => $accountData +=[
-                'intrest_rate' => $data['interest_rate'] ?? config('banking.minor_interest_rate'),
+                'interest_rate' => $data['interest_rate'] ?? config('banking.minor_interest_rate'),
             ],
             default => throw new \Exception("Invalid account type"),
         };
 
         $account = $this->accountRepository->create($accountData);
         $this->accountRepository->attachUser($account, $creator->id, 'owner');
-        return $account->load('users', 'quardian');
+        return $account->load('users', 'guardian');
     }
 
     public function requestClosure(Account $account, User $requester){
@@ -67,11 +67,11 @@ class AccountServices{
             throw ValidationException::withMessages(['balance' => ['Balance must be 0 before closing it']]);
         }
 
-        $this->accountRepository->updatePivot($account, $requester->id, ['accepted closure' => true]);
+        $this->accountRepository->updatePivot($account, $requester->id, ['accepted_closure' => true]);
 
         $account->refresh();
 
-        $allAccepted = $account->user->every(fn ($u) => $u->pivot->accepted_closure);
+        $allAccepted = $account->users->every(fn ($u) => $u->pivot->accepted_closure);
         return [
             'message' => $allAccepted ? 'Account is ready for admin closure.' : 'request has been recorded.',
             'all_accepted' => $allAccepted,
