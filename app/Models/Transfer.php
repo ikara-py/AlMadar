@@ -12,7 +12,7 @@ class Transfer extends Model
         'amount',
         'description',
         'status',
-        'intiated_by',
+        'initiated_by',
         'failure_reason'
     ];
     protected $casts = [
@@ -28,7 +28,7 @@ class Transfer extends Model
     }
 
     public function initiatedBy(){
-        return $this->belongsTo(User::class, 'initiatedBy');
+        return $this->belongsTo(User::class, 'initiated_by');
     }
 
     public function transactions(){
