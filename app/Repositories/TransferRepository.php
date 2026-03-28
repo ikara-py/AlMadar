@@ -9,7 +9,7 @@ class TransferRepository{
         return Transfer::create($data);
     }
 
-    public function findOrfail(int $id){
+    public function findOrFail(int $id){
         return Transfer::with(['fromAccount', 'toAccount', 'transactions'])->findOrFail($id);
     }
     
