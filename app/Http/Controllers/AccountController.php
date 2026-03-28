@@ -27,49 +27,52 @@ class AccountController extends Controller
         ],201);
     }
 
-    public function show($id){
-        $account = $this->accountRepository->findOrfail($id);
-        $this->authorizeAccountAccess($account);
+    public function show(Request $request, $id){
+        $account = $this->accountRepository->findOrFail($id);
+        $this->authorizeAccountAccess($account, $request->user());
         return response()->json($account);    
     }
 
 
     public function addCoOwner(Request $request, $id){
-        $account = $this->accountRepository->findOrFail($id);
-        $this->authorizeAccountAccess($account);
-        $this->accountServices->addCoOwner($account, $request->input('user_id'));
-        return response()->json(['message' => 'Co-owner added successfully.']);
+        $validated = $request->validate([
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
 
+        $account = $this->accountRepository->findOrFail($id);
+        $this->authorizeAccountAccess($account, $request->user());
+        $this->accountServices->addCoOwner($account, $validated['user_id']);
+        return response()->json(['message' => 'Co-owner added successfully.']);
     }
 
-    public function removeCoOwner($id, $userId){
-        $account = $this->accountRepository->findOrfail($id);
-        $this->authorizeAccountAccess($account);
+    public function removeCoOwner(Request $request, $id, $userId){
+        $account = $this->accountRepository->findOrFail($id);
+        $this->authorizeAccountAccess($account, $request->user());
         $this->accountServices->removeCoOwner($account, $userId);
         return response()->json(['message' => 'Co-Owner removed']);
     }
 
     
-    public function convert($id){
-        $account = $this->accountRepository->findOrfail($id);
-        $upgrade = $this->accountServices->convertMinorToCurrentAccount($account, auth()->user());
+    public function convert(Request $request, $id){
+        $account = $this->accountRepository->findOrFail($id);
+        $upgrade = $this->accountServices->convertMinorToCurrentAccount($account, $request->user());
     }
 
-    public function requestClosure($id){
-        $account = $this->accountRepository->findOrfail($id);
-        $this->authorizeAccountAccess($account);
-        return response()->json( $this->accountServices->requestClosure($account, auth()->user()));
+    public function requestClosure(Request $request, $id){
+        $account = $this->accountRepository->findOrFail($id);
+        $user = $request->user();
+        $this->authorizeAccountAccess($account, $user);
+        return response()->json( $this->accountServices->requestClosure($account, $user));
     }
 
     public function transactions(Request $request, $id){
-        $account = $this->accountRepository->findOrfail($id);
-        $this->authorizeAccountAccess($account);
+        $account = $this->accountRepository->findOrFail($id);
+        $this->authorizeAccountAccess($account, $request->user());
         return response()->json($this->transactionRepository->getForAccount($account, $request->only(['type', 'date_from', 'date_to'])));
     }
 
-        private function authorizeAccountAccess($account)
+    private function authorizeAccountAccess($account, $user)
     {
-        $user = auth()->user();
         if (
             !$account->users->contains($user->id) &&
             $account->guardian_id !== $user->id &&
