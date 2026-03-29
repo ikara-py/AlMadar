@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\UserController;
@@ -24,10 +25,17 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/accounts/{id}',[AccountController::class, 'requestClosure']);
     Route::get('/accounts/{id}/transactions',[AccountController::class, 'transactions']);
 
-    Route::post('/transfers',      [TransferController::class, 'store']);
-    Route::get('/transfers/{id}',  [TransferController::class, 'show']);
+    Route::post('/transfers',[TransferController::class, 'store']);
+    Route::get('/transfers/{id}',[TransferController::class, 'show']);
 
-    Route::get('/users/me',           [UserController::class, 'me']);
-    Route::put('/users/me',           [UserController::class, 'update']);
+    Route::get('/users/me',[UserController::class, 'me']);
+    Route::put('/users/me',[UserController::class, 'update']);
     Route::patch('/users/me/password',[UserController::class, 'changePassword']);
+
+    Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/accounts',[AdminController::class, 'allAccounts']);
+        Route::patch('/accounts/{id}/block',[AdminController::class, 'block']);
+        Route::patch('/accounts/{id}/unblock',[AdminController::class, 'unblock']);
+        Route::patch('/accounts/{id}/close',[AdminController::class, 'close']);
+    });
 });
