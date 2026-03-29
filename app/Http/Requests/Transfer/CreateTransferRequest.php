@@ -14,7 +14,7 @@ class CreateTransferRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,8 +25,8 @@ class CreateTransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from_account_id' => 'required|exists:account,id',
-            'to_account_id' => 'required|exists:account,id',
+            'from_account_id' => 'required|exists:accounts,id',
+            'to_account_id' => 'required|exists:accounts,id',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'string|max:255|nullable',
         ];

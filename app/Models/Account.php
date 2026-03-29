@@ -63,7 +63,7 @@ class Account extends Model
     }
 
 
-    public function canBeDebeted(float $amount)
+    public function canBeDebited(float $amount)
     {
         return ($this->balance - $amount) >= -$this->getEffectiveOverdraftLimit();
     }
@@ -84,7 +84,7 @@ class Account extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function outgouingTransfers()
+    public function outgoingTransfers()
     {
         return $this->hasMany(Transfer::class, 'from_account_id');
     }
